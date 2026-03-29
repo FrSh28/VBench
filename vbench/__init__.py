@@ -144,14 +144,23 @@ class VBench(object):
         else:
             full_info_list = load_json(self.full_info_dir)
             video_names = os.listdir(videos_path)
-            postfix = Path(video_names[0]).suffix
+            for filename in video_names:
+                postfix = Path(filename).suffix
+                if postfix.lower() in ['.mp4', '.gif', '.jpg', '.png']:
+                    break
+
             for prompt_dict in full_info_list:
                 # if the prompt belongs to any dimension we want to evaluate
                 if set(dimension_list) & set(prompt_dict["dimension"]): 
                     prompt = prompt_dict['prompt_en']
                     prompt_dict['video_list'] = []
-                    for i in range(5): # video index for the same prompt
-                        intended_video_name = f'{prompt}{special_str}-{str(i)}{postfix}'
+                    num_samples = kwargs.get('num_samples', 5)
+                    for i in range(num_samples): # video index for the same prompt
+                        intended_video_name = (
+                            f'{prompt}{special_str}' +
+                            f'-{str(i)}' if num_samples > 1 else '' +
+                            f'{postfix}'
+                        )
                         if intended_video_name in video_names: # if the video exists
                             intended_video_path = os.path.join(videos_path, intended_video_name)
                             prompt_dict['video_list'].append(intended_video_path)
